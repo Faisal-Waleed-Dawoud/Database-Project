@@ -5,6 +5,16 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-blue: var(--blue);
+  --color-blue-light: var(--blue-light);
+  --color-blue-lighter: var(--blue-lighter);
+  --color-blue-dark: var(--blue-dark);
+  --color-blue-darker: var(--blue-darker);
+  --color-purple: var(--purple);
+  --color-purple-light: var(--purple-light);
+  --color-purple-lighter: var(--purple-lighter);
+  --color-purple-dark: var(--purple-dark);
+  --color-purple-darker: var(--purple-darker);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -45,6 +55,16 @@
 
 :root {
   --radius: 0.625rem;
+  --blue: #00B7FF;
+  --blue-light: #67D4FF;
+  --blue-lighter: #D1F2FF;
+  --blue-dark: #006E99;
+  --blue-darker: #002635;
+  --purple: #2E5CD1;
+  --purple-light: #829DE3;
+  --purple-lighter: #D5DEF6;
+  --purple-dark: #1C377D;
+  --purple-darker: #09122A;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -116,7 +136,18 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .input-field {
+    @apply outline-1 outline-purple-light focus:outline-4 duration-300 rounded-xs px-2 py-0.5
+  }
+
+  .eye-icon-color {
+    @apply text-stone-500 hover:text-blue-dark cursor-pointer duration-300
   }
 }
