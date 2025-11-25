@@ -25,7 +25,6 @@ function SingUp() {
 
     return (
         <>
-            
             <Form className='flex flex-col gap-2' action={singUpAction}>
                 {state?.errors?.unknownError && <p className='text-red-500'>{state.errors.unknownError}</p>}
                 <div className='flex gap-2 items-center justify-between'>

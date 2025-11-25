@@ -36,7 +36,7 @@ export const getUsers = async () => {
 export const insertUser = async (firstName: string, lastName: string, email: string, password: string, salt: string, role: string) => {
 
     try {
-        const result = await pool.query(`INSERT INTO user (firstName, lastName, email, password, salt, role) VALUES ( ? , ?, ? , ?, ?, ?)`, [firstName, lastName, email, password, salt, role])
+        await pool.query(`INSERT INTO user (firstName, lastName, email, password, salt, role) VALUES ( ? , ?, ? , ?, ?, ?)`, [firstName, lastName, email, password, salt, role])
 
         const [user] = await pool.query("SELECT id FROM user WHERE email = ?", [email])
 
@@ -50,7 +50,7 @@ export const insertUser = async (firstName: string, lastName: string, email: str
 export const userExists = async (email: string) => {
 
     try {
-        const [user] = await ( pool).query(`SELECT * FROM user WHERE email = ?`, [email]);
+        const [user] = await (pool).query(`SELECT * FROM user WHERE email = ?`, [email]);
 
         return user
     } catch (error) {

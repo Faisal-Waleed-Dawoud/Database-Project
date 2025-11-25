@@ -82,11 +82,7 @@ export async function signUp(prevState: signUpFormState, formData: FormData) {
 }
 
 export async function signIn(prevState: signUpFormState, formData: FormData) {
-    const errors: signInFormErrors = {
-        email: "",
-        password: "",
-        unknownError: ""
-    }
+    const errors: signInFormErrors = {}
 
     const email = formData.get("email") as string
     const password = formData.get("password") as string
@@ -102,14 +98,19 @@ export async function signIn(prevState: signUpFormState, formData: FormData) {
         errors.password = "Password Cannot be Empty"
     }
 
+    if (email.match(/(<|>|"|!|&|\*|\(|\)|=|\+|\^|'|"|`|#|%|\$|~|\|)/gm)) {
+        errors.email = "Email cannot have special characters"
+    }
+
     const user = await userExists(email) as User
 
     if (user[0] == null) {
         errors.unknownError = "Incorrect email or password"
+        return {errors, payload: formData, status: 400}
     }
-    
-    const isCorrectUser = compareHashes(password, user.password, user.salt)
-    
+
+    const isCorrectUser = await compareHashes(password, user[0].password, user[0].salt)
+
     if (!isCorrectUser) {
         errors.unknownError = "Incorrect email or password"
     }
