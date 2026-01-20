@@ -2,18 +2,21 @@
 import React from 'react'
 import { useFormStatus } from 'react-dom'
 import Spinner from './spinner'
+import { Button } from './ui/button'
 
 
 
-function Submit() {
+type variants = "default" | "destructive" | "secondary" | "outline" | "ghost" | "link"
+
+function Submit({text, variant}: {text: string, variant: variants}) {
 
     const {pending} = useFormStatus()
 
     return (
-        <button disabled={pending} className='mt-2 bg-blue-500 duration-300 hover:bg-blue-600 cursor-pointer text-white rounded-sm px-2 py-1'>
+        <Button disabled={pending} variant={variant}>
             {pending && <Spinner></Spinner>}
-            Submit
-        </button>
+            {text}
+        </Button>
     )
 }
 
