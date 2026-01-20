@@ -1,6 +1,8 @@
 'use server'
 
 import mysql from "mysql2/promise"
+import { MAX_ROWS } from "../types";
+import { getCurrentUser } from "../utils";
 
 
 
@@ -21,13 +23,35 @@ const pool = mysql.createPool({
 })
 
 
-export const getUsers = async () => {
-
+export const getUsers = async (query?: string, pageNumber?:number) => {
     
+    const user = await getCurrentUser({fullUser:false, redirectIfNotFound:true})
+    const isAuthorized = await authorize(user.role, "user:read")
+    if (isAuthorized === undefined) {
+        return
+    }
+    
+    let offset = 0;
+    if (pageNumber) {
+        offset = --pageNumber * MAX_ROWS;
+    }
     try {
-        const [users] = await (pool).query("SELECT * FROM user")
+        if (query) {
+            const [users] = await pool.query(`
+                SELECT * FROM user WHERE 
+                firstName LIKE CONCAT('%', ? , '%')
+                OR lastName LIKE CONCAT('%', ? , '%')
+                OR email LIKE CONCAT('%', ? , '%')
+                OR role LIKE CONCAT('%', ? , '%')
+                LIMIT ? OFFSET ?`, [query, query, query, query, MAX_ROWS, offset])
+                
+                return users
+        } else {
+            const [users] = await (pool).query("SELECT * FROM user LIMIT ? OFFSET ?", [MAX_ROWS, offset])
+            
+            return users;
+        }
 
-        return users;
     } catch (error) {
         return error;
     }
@@ -95,6 +119,46 @@ export const getUserById = async (id: string) => {
         const [user] = await (pool).query("SELECT * FROM user WHERE id = ?", [id])
         return user[0]
     } catch (error) {
+        return error
+    }
+}
+
+export const deleteUser = async(id: string) => {
+    try {
+        await pool.query("DELETE FROM user WHERE id = ?", [id])
+    } catch(error) {
+        return error
+    }
+}
+
+export const getUsersCount = async(query?:string, ) => {
+    
+    try {
+        if (query) {
+            const count = await pool.query(`
+                SELECT COUNT(*) FROM user WHERE 
+                firstName LIKE CONCAT('%', ? , '%')
+                OR lastName LIKE CONCAT('%', ? , '%')
+                OR email LIKE CONCAT('%', ? , '%')
+                OR role LIKE CONCAT('%', ? , '%')`, [query, query, query, query])
+            return count[0][0]["COUNT(*)"]
+        }
+        const count = await pool.query("SELECT COUNT(*) FROM user")
+        return count[0][0]["COUNT(*)"]
+    } catch(error) {
+        return error
+    }
+}
+
+export const authorize = async(roleName: string, permission: string) => {
+    
+    try {
+        const result = await pool.query(`
+            SELECT name , role_name from permission p 
+            JOIN roles_permission rp
+            ON p.id = rp.permission_id where rp.role_name = ? AND p.name = ?`, [roleName, permission])
+        return result[0][0]
+    } catch(error) {
         return error
     }
 }

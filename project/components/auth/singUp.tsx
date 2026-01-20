@@ -55,7 +55,7 @@ function SingUp() {
                     </label>
                     {state?.errors?.password && <p className='text-red-500'>{state.errors.password}</p>}
                 </div>
-                <Submit></Submit>
+                <Submit text='Sign Up'></Submit>
             </Form>
         </>
     )

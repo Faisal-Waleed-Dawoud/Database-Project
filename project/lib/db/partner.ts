@@ -26,3 +26,27 @@ export const insertPartner = async(uniName: string, location: string, userId: st
     }
 }
 
+export const updatePartner = async(userId: string, uniName: string, location: string) => {
+    try {
+        await pool.query(`
+            UPDATE partner_uni_admission
+            SET partner_uni_name = ?,
+            location = ?
+            WHERE user_id = ?
+            `, [uniName, location, userId])
+    } catch(error) {
+        return error
+    }
+}
+
+export const getPartnerUni = async(userId: string) => {
+    try {
+        const user = await pool.query(`
+            SELECT * FROM partner_uni_admission WHERE user_id = ?
+            `, [userId])
+        return user[0][0]
+    } catch(error) {
+        return error
+    }
+}
+

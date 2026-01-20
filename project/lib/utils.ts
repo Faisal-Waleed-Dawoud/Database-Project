@@ -42,7 +42,6 @@ export async function getCurrentUser({
   fullUser = false,
   redirectIfNotFound = false
 } = {}) {
-
   const user = await getUserFromSession() as UserSession
   
 
@@ -88,3 +87,11 @@ export const compareHashes = async (input: string, hashed: string, salt: string 
     Buffer.from(hashed, "hex")
   )
 } 
+
+export const formatDate = (time: number) => {
+    const date = new Date(time)
+    const day = date.getDate()
+    const month = date.getMonth() + 1
+    const year = date.getFullYear()
+    return `${year}-${month}-${day}`
+}

@@ -25,6 +25,19 @@ export const insertStudent = async(studentId: number, gpa: number | null, level:
     }
 } 
 
+export const updateStudent = async(userId: string, gpa: number, level: number) => {
+    try {
+        await pool.query(`
+            UPDATE student
+            SET gpa = ?,
+            level = ?
+            WHERE user_id = ?
+            `, [gpa, level, userId])
+    } catch(error) {
+        return error
+    }
+}
+
 export const getStudentById = async(userId: string) => {
     try {
         const user = await pool.query(`
