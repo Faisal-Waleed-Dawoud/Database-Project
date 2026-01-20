@@ -1,6 +1,4 @@
 'use server'
-
-import { Roles } from "../types"
 import mysql from "mysql2/promise"
 
 const pool = mysql.createPool({
@@ -17,25 +15,23 @@ const pool = mysql.createPool({
     queueLimit: 0,
 })
 
-export const insertSession = async(userId: string, sessionToken: string, expDate: Date, role: Roles) => {
-    
+export const insertStudent = async(studentId: number, gpa: number | null, level: number | null, userId: string) => {
     try {
-        await (pool).query(`
-            INSERT INTO session 
-            (userId, token, expDate, role) 
-            VALUES( ? , ? , ? , ?)`, [userId, sessionToken, expDate, role])
-    } catch (error) {
+        await pool.query(`
+            INSERT INTO student VALUES(?, ?, ?, ?)
+            `, [studentId, gpa, level, userId])
+    } catch(error) {
         return error
     }
+} 
 
-}
-
-
-export const deleteSessionToken = async(sessionToken: string) => {
+export const getStudentById = async(userId: string) => {
     try {
-        await pool.query(`DELETE FROM session WHERE token = ? `, [sessionToken])
-
-    } catch (error) {
+        const user = await pool.query(`
+            SELECT * FROM student WHERE user_id = ?
+            `, [userId])
+            return user[0][0]
+    } catch(error) {
         return error
     }
-}
+} 

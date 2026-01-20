@@ -1,9 +1,8 @@
 'use client'
 import { Eye, EyeOff } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useActionState, useState } from 'react'
 import Form from 'next/form'
 import Submit from '../submit'
-import { useFormState } from 'react-dom'
 import { signIn } from '@/lib/db/actions/users'
 import { signInFormErrors } from '@/lib/types'
 
@@ -20,7 +19,7 @@ function SignIn() {
         
         const [visible, setVisible] = useState(false)
 
-        const [state, formAction] = useFormState(signIn, initalState)
+        const [state, formAction] = useActionState(signIn, initalState)
 
     return (
         <Form className='flex flex-col gap-2' action={formAction}>
@@ -40,7 +39,7 @@ function SignIn() {
                 </label>
                 {state?.errors?.password && <p className='text-red-500'>{state.errors.password}</p>}
             </div>
-            <Submit></Submit>
+            <Submit text='Log In'></Submit>
         </Form>
     )
 }

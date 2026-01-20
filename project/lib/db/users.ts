@@ -36,12 +36,31 @@ export const getUsers = async () => {
 export const insertUser = async (firstName: string, lastName: string, email: string, password: string, salt: string, role: string) => {
 
     try {
-        await pool.query(`INSERT INTO user (firstName, lastName, email, password, salt, role) VALUES ( ? , ?, ? , ?, ?, ?)`, [firstName, lastName, email, password, salt, role])
+        await pool.query(`
+            INSERT INTO user 
+            (firstName, lastName, email, password, salt, role) 
+            VALUES( ? , ?, ? , ?, ?, ?)
+            `, [firstName, lastName, email, password, salt, role])
 
-        const [user] = await pool.query("SELECT id FROM user WHERE email = ?", [email])
+        const [user] = await pool.query(`SELECT id FROM user WHERE email = ?`, [email])
 
         return user[0].id
     } catch (error) {
+        return error
+    }
+}
+
+export const updateUser = async(userId: string, firstName: string, lastName: string, password: string, salt: string) => {
+    try {
+        await pool.query(`
+            UPDATE user
+            SET firstName = ?, 
+            lastName = ?,
+            password = ?,
+            salt = ?
+            WHERE id = ?
+            `, [firstName, lastName, password, salt, userId])
+    } catch(error) {
         return error
     }
 }
@@ -60,7 +79,7 @@ export const userExists = async (email: string) => {
 
 // This function should return the user details 
 export const getUserFromSessionToken = async (sessionToken: string) => {
-
+    
     try {
         const [userId] = await (pool).query("SELECT userId, role FROM session WHERE token = ?", [sessionToken])
 
@@ -71,10 +90,9 @@ export const getUserFromSessionToken = async (sessionToken: string) => {
 }
 
 export const getUserById = async (id: string) => {
-
+    
     try {
         const [user] = await (pool).query("SELECT * FROM user WHERE id = ?", [id])
-
         return user[0]
     } catch (error) {
         return error
