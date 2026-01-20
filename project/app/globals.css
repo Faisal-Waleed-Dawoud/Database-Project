@@ -51,6 +51,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --shadow-custom: 0px 2px 2px hsla(0, 0%, 0%, 0.07), 0px 4px 4px hsla(0, 0%, 0%, 0.15);
+  --color-modal-background: rgba(0,0,0,0.5);
+
 }
 
 :root {
@@ -149,5 +152,20 @@
 
   .eye-icon-color {
     @apply text-stone-500 hover:text-blue-dark cursor-pointer duration-300
+  }
+    .pagination-item {
+    @apply py-1 px-2 rounded-md cursor-pointer hover:bg-[#eee] duration-300
+  }
+
+  .pagination-arrow {
+    @apply p-1 cursor-pointer bg-[#eee] hover:bg-blue-500 rounded-full hover:text-white duration-300 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-200
+  }
+
+  .table-custom-cell {
+    @apply px-3 py-2 text-center
+  }
+
+  .closing-btn {
+    @apply text-destructive rounded-md hover:bg-destructive hover:border-destructive border-destructive border-2 hover:text-white w-8 h-8 cursor-pointer duration-300
   }
 }
