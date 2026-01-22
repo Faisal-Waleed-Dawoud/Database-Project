@@ -28,12 +28,6 @@ const {query, page} = await searchParams
             <td className='table-custom-cell'>{courses[i].course_code}</td>
             <td className='table-custom-cell'><span className={`${statusColor} px-2 py-1 rounded-lg`}>{courses[i].course_status}</span></td>
             <td className='table-custom-cell flex justify-center'><Link href={courses[i].syllabus} className='w-fit flex justify-center items-center'><File className='duration-300 w-10 h-10 p-2 hover:bg-blue-400 hover:text-white rounded-lg'></File></Link></td>
-            <td className='table-custom-cell'>
-                <div className='flex gap-2 items-center'>
-                    {/* <DeleteCourse id={courses[i].courseId}></DeleteCourse>
-                    <UpdateCourse id={courses[i].courseId}></UpdateCourse> */}
-                </div>
-            </td>
         </tr>)
     }
 

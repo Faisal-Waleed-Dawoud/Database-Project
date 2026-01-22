@@ -1,12 +1,10 @@
 import Pagination from '@/components/pagination'
-import { MAX_ROWS, Status } from '@/lib/types'
-import React from 'react'
-import { Courses, enrolledStudents } from './lib/types'
+import { MAX_ROWS} from '@/lib/types'
+import { enrolledStudents } from './lib/types'
 import Search from '@/components/search'
-import Link from 'next/link'
-import { File } from 'lucide-react'
 import { getEnrolledStudents, getEnrollmentsCount } from './lib/db'
 import Grade from './components/grade'
+import { formatDate } from '@/lib/utils'
 
 
 
@@ -26,8 +24,8 @@ const {query, page} = await searchParams
             <td className='table-custom-cell'>{enrolledStudents[i].student_id}</td>
             <td className='table-custom-cell'>{enrolledStudents[i].course_name}</td>
             <td className='table-custom-cell'>{enrolledStudents[i].course_code}</td>
-            <td className='table-custom-cell'>{enrolledStudents[i].enrollment_date.toISOString().slice(0, 10)}</td>
-            <td className='table-custom-cell'>{enrolledStudents[i].finishing_date ? enrolledStudents[i].finishing_date.toISOString().slice(0, 10) : "TBA"}</td>
+            <td className='table-custom-cell'>{formatDate(enrolledStudents[i].enrollment_date?.getTime())}</td>
+            <td className='table-custom-cell'>{enrolledStudents[i].finishing_date ? formatDate(enrolledStudents[i].finishing_date?.getTime()) : "TBA"}</td>
             <td className='table-custom-cell'>{enrolledStudents[i].grade ? enrolledStudents[i].grade : <Grade studentId={+enrolledStudents[i].student_id} courseId={enrolledStudents[i].course_id}></Grade>}</td>
         </tr>)
     }
