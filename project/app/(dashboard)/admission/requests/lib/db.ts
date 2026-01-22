@@ -1,4 +1,5 @@
 'use server'
+import { authorizeDbCall } from "@/lib/db/calls"
 import { authorize } from "@/lib/db/users"
 import { MAX_ROWS, Status } from "@/lib/types"
 import { getCurrentUser } from "@/lib/utils"
@@ -19,13 +20,8 @@ const pool = mysql.createPool({
 })
 
 
-export const getUniCourses = async (query?: string, pageNumber?:number) => {
-    const user = await getCurrentUser({fullUser:false, redirectIfNotFound:true})
-    const isAuthorized = await authorize(user.role, "course:read")
-    if (isAuthorized === undefined) {
-        return
-    }
-    
+const getUniCoursesCache = async (query?: string, pageNumber?:number) => {
+    "use cache"
     let offset = 0;
     if (pageNumber) {
         offset = --pageNumber * MAX_ROWS;
@@ -58,7 +54,12 @@ export const getUniCourses = async (query?: string, pageNumber?:number) => {
     }
 }
 
-export const getUniCoursesCount = async(query?:string, ) => {
+export const getUniCourses = async(query?:string, pageNumber?:number) => {
+    return await authorizeDbCall("course:read", getUniCoursesCache, query, pageNumber)
+}
+
+const getUniCoursesCountCache = async(query?:string) => {
+    "use cache"
     try {
         if (query) {
             const count = await pool.query(`
@@ -81,6 +82,10 @@ export const getUniCoursesCount = async(query?:string, ) => {
     } catch(error) {
         return error
     }
+}
+
+export const getUniCoursesCount = async(query?:string) => {
+    return await authorizeDbCall("course:read", getUniCoursesCountCache, query)
 }
 
 export const acceptCourse = async(admissionId: string, courseId:string) => {

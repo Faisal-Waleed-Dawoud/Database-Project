@@ -1,4 +1,5 @@
 "use server"
+import { authorizeDbCall, authorizeDbCallWithUserId } from "@/lib/db/calls"
 import { authorize } from "@/lib/db/users"
 import { MAX_ROWS } from "@/lib/types"
 import { formatDate, getCurrentUser } from "@/lib/utils"
@@ -18,20 +19,15 @@ const pool = mysql.createPool({
     queueLimit: 0,
 })
 
-export const getEnrolledStudents = async (query?: string, pageNumber?: number) => {
-
-    const user = await getCurrentUser({ fullUser: false, redirectIfNotFound: true })
-    const isAuthorized = await authorize(user.role, "enrollment:read")
-    if (isAuthorized === undefined) {
-        return
-    }
+const getEnrolledStudentsCache = async (userId:string, query?: string, pageNumber?: number) => {
+    "use cache"
 
     let offset = 0;
     if (pageNumber) {
         offset = --pageNumber * MAX_ROWS;
     }
     try {
-        const uniId = await pool.query(`SELECT partner_uni_id FROM partner_uni_admission WHERE user_id = ?`, [user.userId])
+        const uniId = await pool.query(`SELECT partner_uni_id FROM partner_uni_admission WHERE user_id = ?`, [userId])
         if (query) {
             const [enrollments] = await pool.query(`
                     SELECT student_id, e.course_id, enrollment_date, finishing_date, grade, course_name, course_code FROM enrolled_courses e 
@@ -59,16 +55,16 @@ export const getEnrolledStudents = async (query?: string, pageNumber?: number) =
     }
 }
 
-export const getEnrollmentsCount = async (query?: string) => {
-    const user = await getCurrentUser({ fullUser: false, redirectIfNotFound: true })
-    const isAuthorized = await authorize(user.role, "enrollment:read")
-    if (isAuthorized === undefined) {
-        return
-    }
+export const getEnrolledStudents = async(query?:string, pageNumber?:number) => {
+    return await authorizeDbCallWithUserId("enrollment:read", getEnrolledStudentsCache, query, pageNumber)
+}
+
+const getEnrollmentsCountCache = async (userId:string, query?: string) => {
+    "use cache"
 
     try {
         const uniId = await pool.query(`
-            SELECT partner_uni_id FROM partner_uni_admission WHERE user_id = ?`, [user.userId])
+            SELECT partner_uni_id FROM partner_uni_admission WHERE user_id = ?`, [userId])
         if (query) {
             const count = await pool.query(`
                 SELECT COUNT(*) FROM enrolled_courses e 
@@ -91,6 +87,11 @@ export const getEnrollmentsCount = async (query?: string) => {
         return error
     }
 }
+
+export const getEnrollmentsCount = async(query?:string) => {
+    return await authorizeDbCallWithUserId("enrollment:read", getEnrollmentsCountCache, query)
+}
+
 
 export const gradeSet = async(studentId: number, courseId: string, grade: string) => {
     const user = await getCurrentUser({fullUser: false, redirectIfNotFound:true})

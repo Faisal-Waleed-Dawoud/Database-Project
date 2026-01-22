@@ -10,7 +10,6 @@ import { EnrollmentFormErrors } from "./types"
 
 
 export async function enroll(courseId: string) {
-    
     const currentUser = await getCurrentUser({ fullUser: false, redirectIfNotFound: true })
     const isAuthorized = await authorize(currentUser.role, "course:enroll")
     if (isAuthorized === undefined) {

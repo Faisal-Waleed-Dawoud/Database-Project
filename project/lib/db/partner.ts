@@ -40,6 +40,7 @@ export const updatePartner = async(userId: string, uniName: string, location: st
 }
 
 export const getPartnerUni = async(userId: string) => {
+    "use cache"
     try {
         const user = await pool.query(`
             SELECT * FROM partner_uni_admission WHERE user_id = ?

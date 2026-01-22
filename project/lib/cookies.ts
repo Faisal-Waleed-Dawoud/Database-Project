@@ -6,6 +6,7 @@ import { deleteSessionToken, insertSession } from "./db/session"
 import { getUserFromSessionToken } from "./db/users"
 
 
+
 const SESSION_EXP_SECONDS = 60 * 60 * 24 * 7
 const COOKIES_SESSION_KEY = 'session-id'
 
@@ -33,27 +34,29 @@ export async function setCookie(sessionId: string) {
     })
 }
 
-export async function getUserFromSession() {
-    const userSession = (await cookies()).get(COOKIES_SESSION_KEY)?.value
-    
 
-    if (userSession == null) {
+async function getUserSessionById(sessionId: string | null) {
+    "use cache"
+    if (sessionId === null) {
         return null
     }
-
-    return getUserSessionById(userSession)
-}
-
-async function getUserSessionById(sessionId: string) {
-
     const hashedSession = createHash("sha256").update(sessionId).digest("hex")
-
 
     return await getUserFromSessionToken(hashedSession) as UserSession
 }
 
-export async function deleteSession() {
-    const sessionId = (await cookies()).get(COOKIES_SESSION_KEY)?.value
+async function getUserSessionId() {
+    const userSession = (await cookies()).get(COOKIES_SESSION_KEY)?.value
+    return userSession ? userSession : null
+}
+
+export async function getUserFromSessionId() {
+    const userSession = await getUserSessionId()
+    
+    return await getUserSessionById(userSession)
+}
+
+export async function deleteSession(sessionId: string | null) {
 
     if (!sessionId) return
 
@@ -63,4 +66,10 @@ export async function deleteSession() {
 
     (await cookies()).delete(COOKIES_SESSION_KEY)
 
+}
+
+export async function deleteSessionId() {
+    const sessionId = await getUserSessionId()
+
+    await deleteSession(sessionId)
 }

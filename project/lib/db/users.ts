@@ -3,6 +3,7 @@
 import mysql from "mysql2/promise"
 import { MAX_ROWS } from "../types";
 import { getCurrentUser } from "../utils";
+import { authorizeDbCall } from "./calls";
 
 
 
@@ -23,13 +24,8 @@ const pool = mysql.createPool({
 })
 
 
-export const getUsers = async (query?: string, pageNumber?:number) => {
-    
-    const user = await getCurrentUser({fullUser:false, redirectIfNotFound:true})
-    const isAuthorized = await authorize(user.role, "user:read")
-    if (isAuthorized === undefined) {
-        return
-    }
+const getUsersCache = async (query?: string, pageNumber?:number) => {
+    "use cache"
     
     let offset = 0;
     if (pageNumber) {
@@ -55,6 +51,10 @@ export const getUsers = async (query?: string, pageNumber?:number) => {
     } catch (error) {
         return error;
     }
+}
+
+export const getUsers = async(query?:string, pageNumber?: number) => {
+    return await authorizeDbCall("user:read", getUsersCache, query, pageNumber)
 }
 
 export const insertUser = async (firstName: string, lastName: string, email: string, password: string, salt: string, role: string) => {
@@ -103,7 +103,7 @@ export const userExists = async (email: string) => {
 
 // This function should return the user details 
 export const getUserFromSessionToken = async (sessionToken: string) => {
-    
+    "use cache"
     try {
         const [userId] = await (pool).query("SELECT userId, role FROM session WHERE token = ?", [sessionToken])
 
@@ -114,7 +114,7 @@ export const getUserFromSessionToken = async (sessionToken: string) => {
 }
 
 export const getUserById = async (id: string) => {
-    
+    "use cache"
     try {
         const [user] = await (pool).query("SELECT * FROM user WHERE id = ?", [id])
         return user[0]
@@ -131,8 +131,8 @@ export const deleteUser = async(id: string) => {
     }
 }
 
-export const getUsersCount = async(query?:string, ) => {
-    
+const getUsersCountCache = async(query?:string, ) => {
+    "use cache"
     try {
         if (query) {
             const count = await pool.query(`
@@ -150,8 +150,12 @@ export const getUsersCount = async(query?:string, ) => {
     }
 }
 
+export const getUsersCount = async(query?:string) => {
+    return await authorizeDbCall("user:read", getUsersCountCache, query)
+}
+
 export const authorize = async(roleName: string, permission: string) => {
-    
+    "use cache"
     try {
         const result = await pool.query(`
             SELECT name , role_name from permission p 

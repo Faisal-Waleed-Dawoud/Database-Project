@@ -39,6 +39,7 @@ export const updateStudent = async(userId: string, gpa: number, level: number) =
 }
 
 export const getStudentById = async(userId: string) => {
+    "use cache"
     try {
         const user = await pool.query(`
             SELECT * FROM student WHERE user_id = ?

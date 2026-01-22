@@ -20,7 +20,6 @@ async function Page({searchParams} : {searchParams: Promise<{query: string, page
     const pages = Math.ceil(usersCount / MAX_ROWS)
     const users = await getUsers(query, pageNumber) as User[]
 
-
     const rows = []
     for (let i = 0; i < users.length; i++) {
         rows.push(<tr key={i} className='hover:bg-[#eee] duration-300 border-b-2 border-b-gray-100'>

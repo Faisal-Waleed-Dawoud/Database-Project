@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import crypto from "crypto"
-import { getUserFromSession } from "./cookies"
+import { getUserFromSessionId } from "./cookies"
 import { redirect } from "next/navigation"
 import { getUserById } from "./db/users"
 import { UserSession } from "./types"
@@ -13,7 +13,7 @@ type FullUser = Exclude<
 >
 
 type User = Exclude<
-  Awaited<ReturnType<typeof getUserFromSession>>,
+  Awaited<ReturnType<typeof getUserFromSessionId>>,
   undefined | null
 >
 
@@ -42,7 +42,7 @@ export async function getCurrentUser({
   fullUser = false,
   redirectIfNotFound = false
 } = {}) {
-  const user = await getUserFromSession() as UserSession
+  const user = await getUserFromSessionId() as UserSession
   
 
   if (!user) {

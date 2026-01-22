@@ -4,7 +4,7 @@ import { CreateUserErrors, Roles, RolesURLS, signInFormErrors, signUpFormErrors,
 import { authorize, deleteUser, insertUser, updateUser, userExists } from "../users"
 import { compareHashes, generateSalt, getCurrentUser, hash } from "@/lib/utils"
 import { redirect } from "next/navigation"
-import { createUserSession, deleteSession } from "@/lib/cookies"
+import { createUserSession, deleteSessionId } from "@/lib/cookies"
 import { signInFormState } from "@/components/auth/signIn"
 import { revalidatePath } from "next/cache"
 import { insertStudent, updateStudent } from "../student"
@@ -147,7 +147,7 @@ export async function signIn(prevState: signInFormState, formData: FormData) {
 
 export async function logOut() {
     try {
-        await deleteSession()
+        await deleteSessionId()
     } catch (error) {
         return error
     }

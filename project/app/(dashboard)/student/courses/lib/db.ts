@@ -1,4 +1,5 @@
 'use server'
+import { authorizeDbCallWithUserId } from "@/lib/db/calls"
 import { authorize } from "@/lib/db/users"
 import { MAX_ROWS, Status } from "@/lib/types"
 import { getCurrentUser } from "@/lib/utils"
@@ -31,18 +32,14 @@ export const insertEnrollment = async(studentId: number, courseId: string) => {
 }
 
 
-export const getApprovedCourses = async(query?: string, pageNumber?:number) => {
-    const user = await getCurrentUser({fullUser:false, redirectIfNotFound:true})
-    const isAuthorized = await authorize(user.role, "course:enroll")
-    if (isAuthorized === undefined) {
-        return
-    }
+const getApprovedCoursesCache = async(userId: string, query?: string, pageNumber?:number) => {
+    "use cache"
     
     let offset = 0;
     if (pageNumber) {
         offset = --pageNumber * MAX_ROWS;
     }
-    const studentId = await getStudentId(user.userId)
+    const studentId = await getStudentId(userId)
     try {
         if (query) {
             const [courses] = await pool.query(`
@@ -77,9 +74,14 @@ export const getApprovedCourses = async(query?: string, pageNumber?:number) => {
     }
 }
 
-export const getApprovedCoursesCount = async(query?:string, ) => {
-    const user = await getCurrentUser({fullUser:false, redirectIfNotFound:true})
-    const studentId = await getStudentId(user.userId)
+export const getApprovedCourses = async(query?:string, pageNumber?: number) => {
+    return await authorizeDbCallWithUserId("course:read", getApprovedCoursesCache, query, pageNumber)
+}
+
+const getApprovedCoursesCountCache = async(userId:string, query?:string) => {
+    "use cache"
+    
+    const studentId = await getStudentId(userId)
     try {
         if (query) {
             const count = await pool.query(`
@@ -110,7 +112,7 @@ export const getApprovedCoursesCount = async(query?:string, ) => {
 }
 
 export const getStudentId = async(userId:string) => {
-
+    "use cache"
     try {
         const studentId = await pool.query(
             `SELECT student_id FROM 
@@ -120,4 +122,8 @@ export const getStudentId = async(userId:string) => {
     } catch(error) {
         return error
     }
+}
+
+export const getApprovedCoursesCount = async(query?: string) => {
+    return await authorizeDbCallWithUserId("course:read", getApprovedCoursesCountCache, query)
 }

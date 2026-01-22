@@ -1,13 +1,8 @@
 import React from "react";
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/utils";
-import { RolesURLS } from "@/lib/types";
+
 
 async function NotFound() {
-    const user = await getCurrentUser({
-        fullUser: false,
-        redirectIfNotFound: false,
-    });
 
 
     return (
@@ -22,7 +17,7 @@ async function NotFound() {
                     authorized to view.
                 </p>
                 <Link
-                    href={user ? RolesURLS[user.role] : "/"}
+                    href={"/"}
                     className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
                 >
                     Go to Dashboard

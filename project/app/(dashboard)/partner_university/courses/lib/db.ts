@@ -1,4 +1,5 @@
 'use server'
+import { authorizeDbCall, authorizeDbCallWithUserId } from "@/lib/db/calls"
 import { authorize } from "@/lib/db/users"
 import { MAX_ROWS, Status } from "@/lib/types"
 import { getCurrentUser } from "@/lib/utils"
@@ -19,19 +20,15 @@ const pool = mysql.createPool({
 })
 
 
-export const getCourses = async (query?: string, pageNumber?:number) => {
-    const user = await getCurrentUser({fullUser:false, redirectIfNotFound:true})
-    const isAuthorized = await authorize(user.role, "course:read")
-    if (isAuthorized === undefined) {
-        return
-    }
+const getCoursesCache = async (userId:string, query?: string, pageNumber?:number) => {
+    "use cache"
     
     let offset = 0;
     if (pageNumber) {
         offset = --pageNumber * MAX_ROWS;
     }
     try {
-        const uniId = await pool.query(`SELECT partner_uni_id FROM partner_uni_admission WHERE user_id = ?`, [user.userId])
+        const uniId = await pool.query(`SELECT partner_uni_id FROM partner_uni_admission WHERE user_id = ?`, [userId])
         if (query) {
             const [courses] = await pool.query(`
                 SELECT * FROM courses WHERE 
@@ -54,16 +51,15 @@ export const getCourses = async (query?: string, pageNumber?:number) => {
     }
 }
 
-export const getCoursesCount = async(query?:string, ) => {
-    const user = await getCurrentUser({fullUser:false, redirectIfNotFound:true})
-    const isAuthorized = await authorize(user.role, "course:read")
-    if (isAuthorized === undefined) {
-        return
-    }
+export const getCourses = async(query?:string, pageNumber?:number) => {
+    return await authorizeDbCallWithUserId("enrollment:read", getCoursesCache, query, pageNumber)
+}
 
+const getCoursesCountCache = async(userId:string, query?:string) => {
+    "use cache"
     try {
         const uniId = await pool.query(`
-            SELECT partner_uni_id FROM partner_uni_admission WHERE user_id = ?`, [user.userId])
+            SELECT partner_uni_id FROM partner_uni_admission WHERE user_id = ?`, [userId])
         if (query) {
             const count = await pool.query(`
                 SELECT COUNT(*) FROM courses WHERE 
@@ -78,6 +74,10 @@ export const getCoursesCount = async(query?:string, ) => {
     } catch(error) {
         return error
     }
+}
+
+export const getCoursesCount = async(query?:string) => {
+    return await authorizeDbCallWithUserId("enrollment:read", getCoursesCountCache, query)
 }
 
 export const insertCourse = async(courseName: string, courseCode: string, syllabus: string, status:Status, partnerUniId: string,  admissionId?:string | null) => {

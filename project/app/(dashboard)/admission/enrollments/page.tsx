@@ -8,6 +8,7 @@ import { getEnrollments, getEnrollmentsCount } from './lib/db'
 import { Enrollments } from './lib/types'
 import EnrollmentAccept from './components/enrollmentAccept'
 import EnrollmentReject from './components/EnrollmentReject'
+import { formatDate } from '@/lib/utils'
 
 
 
@@ -31,8 +32,8 @@ async function Page({searchParams} : {searchParams: Promise<{query: string, page
             <td className='table-custom-cell'>{enrollments[i].location}</td>
             <td className='table-custom-cell'>{enrollments[i].course_name}</td>
             <td className='table-custom-cell'>{enrollments[i].course_code}</td>
-            <td className='table-custom-cell'>{enrollments[i].enrollment_date ? enrollments[i].enrollment_date?.toISOString().slice(0, 10) : "TBA"}</td>
-            <td className='table-custom-cell'>{enrollments[i].finishing_date ? enrollments[i].finishing_date?.toISOString().slice(0, 10) : "TBA"}</td>
+            <td className='table-custom-cell'>{enrollments[i].enrollment_date ? formatDate(enrollments[i].enrollment_date?.getTime()) : "TBA"}</td>
+            <td className='table-custom-cell'>{enrollments[i].finishing_date ? formatDate(enrollments[i].finishing_date?.getTime()) : "TBA"}</td>
             <td className='table-custom-cell'>{enrollments[i].grade ? enrollments[i].grade : "TBA"}</td>
             <td className='table-custom-cell'><span className={`${statusColor} px-2 py-1 rounded-lg`}>{enrollments[i].status}</span></td>
             <td className='table-custom-cell flex justify-center'><Link href={enrollments[i].syllabus} className='w-fit flex justify-center items-center'><File className='duration-300 w-10 h-10 p-2 hover:bg-blue-400 hover:text-white rounded-lg'></File></Link></td>
