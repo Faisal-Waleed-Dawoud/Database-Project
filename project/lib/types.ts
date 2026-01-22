@@ -1,4 +1,4 @@
-export type User = {
+export interface User  {
     id: string,
     firstName: string,
     lastName: string,
@@ -8,7 +8,7 @@ export type User = {
     role: Roles
 }
 
-export type signUpFormErrors = {
+export interface signUpFormErrors  {
     firstName: string,
     lastName: string,
     email: string,
@@ -16,25 +16,25 @@ export type signUpFormErrors = {
     unknownError: string,
 }
 
-export type signInFormErrors = {
+export interface signInFormErrors {
     email: string,
     password: string,
     unknownError: string,
 }
 
-export type UserSession = {
+export interface UserSession {
     userId: string,
     role: Roles
 }
 
-export type Session = {
+export interface Session  {
     id: string,
     userId: string,
     sessionToken: string,
     expireDate: number,
 }
 
-export type CreateUserErrors = signUpFormErrors & {
+export interface CreateUserErrors extends signUpFormErrors {
     role: string,
     universityName?: string,
     universityLocation?:string,
@@ -42,7 +42,7 @@ export type CreateUserErrors = signUpFormErrors & {
     level?: string
 }
 
-export type UpdateUserProfileErrors = signUpFormErrors & {
+export interface UpdateUserProfileErrors extends signUpFormErrors {
     universityName?: string,
     universityLocation?:string,
     gpa?: string,
@@ -63,13 +63,13 @@ export enum RolesURLS {
     partner_university_admission = "partner_university"
 }
 
-export type BaseFormState = {
+export interface BaseFormState {
     errors?: Record<string, string>
     payload?: FormData,
     [key: string]: any
 }
 
-export type InputProps<S extends BaseFormState = BaseFormState> = {
+export interface InputProps<S extends BaseFormState = BaseFormState> {
     title: string,
     id:string,
     name: string,
@@ -86,14 +86,14 @@ export enum Status {
     rejected = "rejected"
 }
 
-export type Student = {
+export interface Student {
     gpa: number,
     level: number,
     student_id: number,
     user_id: string
 }
 
-export type PartnerUni = {
+export interface PartnerUni {
     partner_uni_id: string,
     partner_uni_name: string,
     location: string,

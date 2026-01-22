@@ -10,7 +10,6 @@ import { revalidatePath } from "next/cache"
 import { insertStudent, updateStudent } from "../student"
 import { insertPartner, updatePartner } from "../partner"
 
-
 export async function signUp(prevState: signUpFormState, formData: FormData) {
     const errors: signUpFormErrors = {}
 
@@ -83,9 +82,8 @@ export async function signUp(prevState: signUpFormState, formData: FormData) {
         const userId = await insertUser(fName, lName, email, hashedPassword, salt, Roles.Student)
         await insertStudent(+studId, null, null, userId)
         await createUserSession(userId, Roles.Student)
-
     } catch (error) {
-        errors.unknownError = error instanceof Error ? error.message : String(error)
+        errors.unknownError = error
     }
     redirect(`/${Roles.Student}`)
 }
