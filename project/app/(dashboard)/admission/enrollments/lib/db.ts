@@ -1,9 +1,8 @@
 "use server"
 
 import { authorizeDbCall } from "@/lib/db/calls"
-import { authorize } from "@/lib/db/users"
 import { MAX_ROWS, Status } from "@/lib/types"
-import { formatDate, getCurrentUser } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
 import mysql from "mysql2/promise"
 
 const pool = mysql.createPool({
@@ -20,15 +19,27 @@ const pool = mysql.createPool({
     queueLimit: 0,
 })
 
-const getEnrollmentsCache = async (query?: string, pageNumber?:number) => {
+const getEnrollmentsCache = async (query?: string, status?: string, pageNumber?: number) => {
     "use cache"
-    
+
     let offset = 0;
     if (pageNumber) {
         offset = --pageNumber * MAX_ROWS;
     }
     try {
-        if (query) {
+        if (query && status) {
+            const [courses] = await pool.query(`
+                SELECT * FROM enrollments
+                WHERE (student_id LIKE CONCAT('%', ? , '%')
+                OR location LIKE CONCAT('%', ? , '%')
+                OR course_name LIKE CONCAT('%', ? , '%')
+                OR course_code LIKE CONCAT('%', ? , '%')
+                OR partner_uni_name LIKE CONCAT('%', ? , '%'))
+                AND status = ?
+                LIMIT ? OFFSET ?`, [query, query, query, query, query, status, MAX_ROWS, offset])
+
+            return courses
+        } else if (query) {
             const [courses] = await pool.query(`
                 SELECT * FROM enrollments
                 WHERE student_id LIKE CONCAT('%', ? , '%')
@@ -37,8 +48,15 @@ const getEnrollmentsCache = async (query?: string, pageNumber?:number) => {
                 OR course_code LIKE CONCAT('%', ? , '%')
                 OR partner_uni_name LIKE CONCAT('%', ? , '%')
                 LIMIT ? OFFSET ?`, [query, query, query, query, query, MAX_ROWS, offset])
-                
-                return courses
+
+            return courses
+        } else if (status) {
+            const [courses] = await pool.query(`
+                SELECT * FROM enrollments
+                WHERE status = ?
+                LIMIT ? OFFSET ?`, [status, MAX_ROWS, offset])
+
+            return courses
         } else {
             const [courses] = await (pool).query(`
                 SELECT * FROM enrollments
@@ -51,38 +69,98 @@ const getEnrollmentsCache = async (query?: string, pageNumber?:number) => {
     }
 }
 
-export const getEnrollments = async(query?:string, pageNumber?:number) => {
-    return await authorizeDbCall("course:read", getEnrollmentsCache, query, pageNumber)
+export const getEnrollments = async (query?: string, status?: string, pageNumber?: number) => {
+    return await authorizeDbCall("course:read", getEnrollmentsCache, query, status, pageNumber)
 }
 
-export const getEnrollmentsCountCache = async(query?:string) => {
+export const getEnrollmentsCountCache = async (query?: string, status?: string) => {
     "use cache"
     try {
-        if (query) {
+        if (query && status) {
+            const count = await pool.query(`
+                SELECT COUNT(*) FROM enrollments
+                WHERE (student_id LIKE CONCAT('%', ? , '%')
+                OR location LIKE CONCAT('%', ? , '%')
+                OR course_name LIKE CONCAT('%', ? , '%')
+                OR course_code LIKE CONCAT('%', ? , '%')
+                OR partner_uni_name LIKE CONCAT('%', ? , '%'))
+                AND status = ?`, [query, query, query, query, query, status])
+            return count[0][0]["COUNT(*)"]
+        } else if (query) {
             const count = await pool.query(`
                 SELECT COUNT(*) FROM enrollments
                 WHERE student_id LIKE CONCAT('%', ? , '%')
                 OR location LIKE CONCAT('%', ? , '%')
                 OR course_name LIKE CONCAT('%', ? , '%')
                 OR course_code LIKE CONCAT('%', ? , '%')
-                OR partner_uni_name LIKE CONCAT('%', ? , '%')
-                LIMIT ? OFFSET ?`, [query, query, query, query, query])
+                OR partner_uni_name LIKE CONCAT('%', ? , '%')`, [query, query, query, query, query])
+            return count[0][0]["COUNT(*)"]
+        } else if (status) {
+            const count = await pool.query(`
+                SELECT COUNT(*) FROM enrollments
+                WHERE status = ?`, [status])
             return count[0][0]["COUNT(*)"]
         }
         const count = await pool.query(`
             SELECT COUNT(*) FROM enrollments
             `)
         return count[0][0]["COUNT(*)"]
-    } catch(error) {
+    } catch (error) {
         return error
     }
 }
 
-export const getEnrollmentsCount = async(query?:string) => {
-    return await authorizeDbCall("course:read", getEnrollmentsCountCache, query)
+export const getEnrollmentsCount = async (query?: string, status?: string) => {
+    return await authorizeDbCall("course:read", getEnrollmentsCountCache, query, status)
 }
 
-export const enrollmentApprove = async(courseId: string, studentId: number, admissionId: string) => {
+const getAllEnrollmentsCache = async (query?: string, status?: string) => {
+    "use cache"
+    const selectedColumns = "student_id, grade, enrollment_date, finishing_date, status, course_name, course_code, location"
+    
+    try {
+        if (query && status) {
+            const [enrollments] = await pool.query(`
+                SELECT ${selectedColumns} FROM enrollments
+                WHERE (student_id LIKE CONCAT('%', ? , '%')
+                OR location LIKE CONCAT('%', ? , '%')
+                OR course_name LIKE CONCAT('%', ? , '%')
+                OR course_code LIKE CONCAT('%', ? , '%')
+                OR partner_uni_name LIKE CONCAT('%', ? , '%'))
+                AND status = ?`, [query, query, query, query, query, status])
+            return enrollments
+        } else if (query) {
+            const [enrollments] = await pool.query(`
+                SELECT ${selectedColumns} FROM enrollments
+                WHERE student_id LIKE CONCAT('%', ? , '%')
+                OR location LIKE CONCAT('%', ? , '%')
+                OR course_name LIKE CONCAT('%', ? , '%')
+                OR course_code LIKE CONCAT('%', ? , '%')
+                OR partner_uni_name LIKE CONCAT('%', ? , '%')`, [query, query, query, query, query])
+
+            return enrollments
+        } else if (status) {
+            const [enrollments] = await pool.query(`
+                SELECT ${selectedColumns} FROM enrollments
+                WHERE status = ?`, [status])
+
+            return enrollments;
+        } else {
+            const [enrollments] = await pool.query(`SELECT ${selectedColumns} FROM enrollments`)
+
+            return enrollments;
+        }
+
+    } catch (error) {
+        return error;
+    }
+}
+
+export const getAllEnrollments = async (query?: string, status?: string) => {
+    return await authorizeDbCall("course:read", getAllEnrollmentsCache, query, status)
+}
+
+export const enrollmentApprove = async (courseId: string, studentId: number, admissionId: string) => {
     const date = Date.now()
     const enrollmentDate = formatDate(date)
     try {
@@ -94,12 +172,12 @@ export const enrollmentApprove = async(courseId: string, studentId: number, admi
             WHERE course_id = ?
             AND student_id = ?
             `, [Status.approved, admissionId, enrollmentDate, courseId, studentId])
-    } catch(error) {
+    } catch (error) {
         return error
     }
 }
 
-export const enrollmentReject = async(courseId: string, studentId: number, admissionId: string) => {
+export const enrollmentReject = async (courseId: string, studentId: number, admissionId: string) => {
     try {
         await pool.query(`
             UPDATE enrolled_courses
@@ -108,7 +186,7 @@ export const enrollmentReject = async(courseId: string, studentId: number, admis
             WHERE course_id = ? 
             AND student_id = ?
             `, [Status.rejected, admissionId, courseId, studentId])
-    } catch(error) {
+    } catch (error) {
         return error
     }
 }

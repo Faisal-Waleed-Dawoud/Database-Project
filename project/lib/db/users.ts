@@ -1,8 +1,7 @@
 'use server'
 
 import mysql from "mysql2/promise"
-import { MAX_ROWS } from "../types";
-import { getCurrentUser } from "../utils";
+import { MAX_ROWS, SafeUser } from "../types";
 import { authorizeDbCall } from "./calls";
 
 
@@ -51,6 +50,35 @@ const getUsersCache = async (query?: string, pageNumber?:number) => {
     } catch (error) {
         return error;
     }
+}
+
+const getAllUsersCache = async(query?:string) => {
+    "use cache"
+
+    try {
+        if (query) {
+            const [users] = await pool.query(`
+                SELECT firstName, lastName, email, role FROM user WHERE 
+                firstName LIKE CONCAT('%', ? , '%')
+                OR lastName LIKE CONCAT('%', ? , '%')
+                OR email LIKE CONCAT('%', ? , '%')
+                OR role LIKE CONCAT('%', ? , '%')
+                `, [query, query, query, query])
+                
+                return users
+        } else {
+            const [users] = await (pool).query("SELECT firstName, lastName, email, role FROM user")
+            
+            return users;
+        }
+
+    } catch (error) {
+        return error;
+    }
+}
+
+export const getAllUsers = async(query?:string) => {
+    return await authorizeDbCall("user:read", getAllUsersCache, query)
 }
 
 export const getUsers = async(query?:string, pageNumber?: number) => {

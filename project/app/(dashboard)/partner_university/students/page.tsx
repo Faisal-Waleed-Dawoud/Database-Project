@@ -36,7 +36,7 @@ const {query, page} = await searchParams
                 <div className='mb-3 flex justify-between'>
                     <h2 className='text-3xl font-semibold'>Students Enrollments</h2>
                     <div className='flex gap-2 items-center'>
-                        <Search url='/partner_university/students' text='search for a student'></Search>
+                        <Search text='search for a student'></Search>
                     </div>
                 </div>
                 {+pageNumber < 1 || +pageNumber > pages ? <p>Data not found</p> :

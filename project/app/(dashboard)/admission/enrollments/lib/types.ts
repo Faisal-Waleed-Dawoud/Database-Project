@@ -1,4 +1,11 @@
 
+export enum EnrollmentsStatus {
+    pending = "pending",
+    approved = "approved",
+    rejected = "rejected",
+    completed = "completed"
+}
+
 
 export type Enrollments = {
     course_code: string
@@ -11,7 +18,9 @@ export type Enrollments = {
     level: number,
     location: string,
     partner_uni_name: string,
-    status: Enrollments,
+    status: EnrollmentsStatus,
     student_id: number,
     syllabus: string
 }
+
+export type ExportedEnrollments = Omit<Enrollments, "course_id" | "syllabus">

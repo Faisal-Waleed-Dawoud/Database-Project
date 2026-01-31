@@ -8,6 +8,8 @@ export interface User  {
     role: Roles
 }
 
+export type SafeUser = Pick<User, "firstName" | "lastName" | "email" | "role">
+
 export interface signUpFormErrors  {
     firstName: string,
     lastName: string,

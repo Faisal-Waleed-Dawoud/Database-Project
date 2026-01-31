@@ -4,9 +4,10 @@ import UpdateUser from '@/app/(dashboard)/admission/users/components/updateUser'
 import Pagination from '@/components/pagination';
 import Search from '@/components/search';
 import { getUsers, getUsersCount } from '@/lib/db/users'
-import { MAX_ROWS, User } from '@/lib/types';
+import { MAX_ROWS, SafeUser} from '@/lib/types';
 import { getCurrentUser } from '@/lib/utils';
 import React from 'react'
+import Generatexlsx from '../../../../components/dashboard/generatexlsx';
 
 
 
@@ -18,7 +19,7 @@ async function Page({searchParams} : {searchParams: Promise<{query: string, page
     const pageNumber = page || 1
     const usersCount = await getUsersCount(query)
     const pages = Math.ceil(usersCount / MAX_ROWS)
-    const users = await getUsers(query, pageNumber) as User[]
+    const users = await getUsers(query, pageNumber) as SafeUser[]
 
     const rows = []
     for (let i = 0; i < users.length; i++) {
@@ -45,8 +46,9 @@ async function Page({searchParams} : {searchParams: Promise<{query: string, page
                 <div className='mb-3 flex justify-between'>
                     <h2 className='text-3xl font-semibold'>Users</h2>
                     <div className='flex gap-2 items-center'>
+                        <Generatexlsx query={query} apiURL='/api/admission/users' fileName='users.xlsx'></Generatexlsx>
                         <CreateUser></CreateUser>
-                        <Search url='/admission/users' text='search for a user'></Search>
+                        <Search text='search for a user'></Search>
                     </div>
                 </div>
                 {+pageNumber < 1 || +pageNumber > pages ? <p>Data not found</p> :
